@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ElectroQuest — Eletrônica Analógica</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1e2d3d;--accent:#00d4ff;--accent2:#ff6b35;--accent3:#7c3aed;--gold:#fbbf24;--green:#10b981;--red:#ef4444;--tx:#f0f4f8;--mu:#64748b;--bd:rgba(255,255,255,0.07);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,212,255,0.05) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(124,58,237,0.05) 0%,transparent 60%);pointer-events:none;}
+.screen{display:none;min-height:100vh;position:relative;z-index:1;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* HOME */
+#home{align-items:center;justify-content:center;text-align:center;padding:24px;}
+.home-logo{font-family:'Orbitron',monospace;font-size:clamp(2rem,8vw,4rem);font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent3),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em;margin-bottom:8px;animation:glow 3s ease-in-out infinite alternate;}
+@keyframes glow{from{filter:drop-shadow(0 0 20px rgba(0,212,255,0.3))}to{filter:drop-shadow(0 0 40px rgba(124,58,237,0.5))}}
+.home-sub{font-size:1rem;color:var(--mu);margin-bottom:40px;letter-spacing:.05em;}
+.mascot-preview{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;}
+.mp-card{width:80px;height:80px;border-radius:16px;background:var(--bg2);border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:2rem;position:relative;transition:all .3s;}
+.mp-card.locked{filter:grayscale(1);opacity:.4;}
+.mp-card.unlocked{border-color:var(--accent);box-shadow:0 0 20px rgba(0,212,255,0.2);animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.lock{position:absolute;bottom:4px;right:4px;font-size:.7rem;}
+.stats-bar{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;}
+.stat-chip{background:var(--bg2);border:1px solid var(--bd);border-radius:20px;padding:8px 18px;display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;}
+.stat-chip span{color:var(--accent);font-family:'Orbitron',monospace;font-size:1rem;}
+.btn-start{background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;border-radius:16px;padding:18px 48px;font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.05em;transition:all .2s;box-shadow:0 4px 30px rgba(0,212,255,0.3);text-transform:uppercase;}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,212,255,0.5);}
+
+/* MAPA */
+#mapa{padding:24px;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px;}
+.top-bar h2{font-family:'Orbitron',monospace;font-size:1.1rem;color:var(--accent);}
+.pts-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;border-radius:20px;padding:6px 16px;font-weight:800;font-size:.9rem;display:flex;align-items:center;gap:6px;}
+.fases-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:1000px;margin:0 auto;}
+.fase-card{background:var(--bg2);border:2px solid var(--bd);border-radius:20px;padding:24px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;}
+.fase-card.disponivel{border-color:var(--accent);}
+.fase-card.disponivel:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,212,255,0.2);}
+.fase-card.concluida{border-color:var(--green);}
+.fase-card.bloqueada{opacity:.5;cursor:not-allowed;filter:grayscale(.5);}
+.fase-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.fase-icon{width:56px;height:56px;border-radius:14px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;}
+.fase-num{font-family:'Orbitron',monospace;font-size:.7rem;color:var(--mu);}
+.fase-nome{font-size:1rem;font-weight:800;}
+.fase-mascote{font-size:.8rem;color:var(--accent);margin-top:2px;}
+.fase-desc{font-size:.82rem;color:var(--mu);line-height:1.5;margin-bottom:16px;}
+.fase-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.tag{background:var(--bg3);border-radius:8px;padding:3px 10px;font-size:.72rem;font-weight:700;color:var(--mu);}
+.fase-status{position:absolute;top:16px;right:16px;font-size:1.2rem;}
+.progress-mini{height:4px;background:var(--bg3);border-radius:2px;margin-top:14px;overflow:hidden;}
+.progress-mini-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:2px;transition:width .5s;}
+
+/* FASE */
+#fase{padding:24px;max-width:800px;margin:0 auto;width:100%;}
+.fase-top{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.btn-back{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:8px 14px;color:var(--tx);cursor:pointer;font-size:.85rem;font-family:'Nunito',sans-serif;font-weight:700;transition:all .15s;}
+.btn-back:hover{border-color:var(--accent);color:var(--accent);}
+.fase-titulo{font-family:'Orbitron',monospace;font-size:1rem;color:var(--accent);}
+.abas{display:flex;gap:4px;margin-bottom:24px;background:var(--bg2);border-radius:12px;padding:4px;}
+.aba{flex:1;padding:10px;border-radius:10px;border:none;background:transparent;color:var(--mu);font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;text-align:center;}
+.aba.ativa{background:var(--bg3);color:var(--tx);box-shadow:0 2px 8px rgba(0,0,0,.3);}
+
+/* TEORIA */
+.teoria-box{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:24px;margin-bottom:20px;line-height:1.8;font-size:.92rem;}
+.teoria-box h3{font-family:'Orbitron',monospace;font-size:.9rem;color:var(--accent);margin-bottom:12px;}
+.teoria-box p{color:#c0ccd8;margin-bottom:12px;}
+.formula{background:var(--bg3);border-left:3px solid var(--accent);border-radius:8px;padding:14px 18px;font-family:monospace;font-size:1rem;color:var(--accent2);margin:14px 0;}
+.mascote-fala{background:linear-gradient(135deg,var(--bg3),rgba(0,212,255,0.05));border:1px solid rgba(0,212,255,0.2);border-radius:16px;padding:20px;display:flex;gap:14px;align-items:flex-start;margin-bottom:20px;}
+.mascote-emoji{font-size:2.5rem;flex-shrink:0;}
+.mascote-texto{font-size:.88rem;color:#c0ccd8;line-height:1.6;}
+.mascote-texto strong{color:var(--accent);}
+
+/* QUIZ */
+.pergunta-box{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:24px;margin-bottom:20px;}
+.pergunta-num{font-size:.75rem;color:var(--mu);font-family:'Orbitron',monospace;margin-bottom:8px;}
+.pergunta-txt{font-size:1rem;font-weight:700;margin-bottom:20px;line-height:1.5;}
+.opcoes{display:flex;flex-direction:column;gap:10px;}
+.opcao{background:var(--bg3);border:2px solid var(--bd);border-radius:12px;padding:14px 18px;cursor:pointer;font-size:.9rem;font-weight:600;transition:all .2s;text-align:left;font-family:'Nunito',sans-serif;color:var(--tx);}
+.opcao:hover:not(:disabled){border-color:var(--accent);background:rgba(0,212,255,0.05);}
+.opcao.certa{border-color:var(--green)!important;background:rgba(16,185,129,0.1)!important;color:var(--green)!important;}
+.opcao.errada{border-color:var(--red)!important;background:rgba(239,68,68,0.1)!important;color:var(--red)!important;}
+.opcao:disabled{cursor:default;}
+.feedback-box{margin-top:14px;padding:14px 18px;border-radius:12px;font-size:.88rem;font-weight:700;display:none;}
+.feedback-box.certo{background:rgba(16,185,129,.15);color:var(--green);display:block;}
+.feedback-box.errado{background:rgba(239,68,68,.15);color:var(--red);display:block;}
+.quiz-nav{display:flex;gap:10px;margin-top:16px;justify-content:space-between;align-items:center;}
+.quiz-pts{font-family:'Orbitron',monospace;font-size:.8rem;color:var(--gold);}
+
+/* SIMULADOR */
+.sim-box{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:24px;}
+.sim-box h3{font-family:'Orbitron',monospace;font-size:.85rem;color:var(--accent2);margin-bottom:16px;}
+.sim-circuito{background:var(--bg3);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;}
+.sim-controls{display:flex;flex-direction:column;gap:14px;}
+.slider-group{display:flex;flex-direction:column;gap:6px;}
+.slider-label{font-size:.82rem;color:var(--mu);display:flex;justify-content:space-between;}
+.slider-label span{color:var(--accent);font-weight:800;font-family:'Orbitron',monospace;font-size:.85rem;}
+input[type=range]{width:100%;accent-color:var(--accent);height:6px;border-radius:3px;}
+.sim-resultado{background:var(--bg3);border-radius:12px;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+.res-item{text-align:center;}
+.res-label{font-size:.72rem;color:var(--mu);margin-bottom:4px;}
+.res-valor{font-family:'Orbitron',monospace;font-size:1.1rem;color:var(--accent);font-weight:700;}
+
+/* UNLOCK */
+.unlock-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:24px;}
+.unlock-overlay.show{display:flex;}
+.unlock-card{background:var(--bg2);border:2px solid var(--gold);border-radius:24px;padding:40px;text-align:center;max-width:360px;animation:popIn .4s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 0 60px rgba(251,191,36,0.3);}
+@keyframes popIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.unlock-emoji{font-size:4rem;margin-bottom:12px;animation:float 2s ease-in-out infinite;}
+.unlock-titulo{font-family:'Orbitron',monospace;font-size:1rem;color:var(--gold);margin-bottom:8px;}
+.unlock-nome{font-size:1.4rem;font-weight:800;margin-bottom:8px;}
+.unlock-desc{font-size:.85rem;color:var(--mu);margin-bottom:24px;line-height:1.5;}
+.btn-unlock{background:linear-gradient(135deg,var(--gold),#f59e0b);color:#000;border:none;border-radius:12px;padding:14px 32px;font-family:'Orbitron',monospace;font-weight:700;cursor:pointer;font-size:.9rem;letter-spacing:.05em;transition:all .2s;}
+.btn-unlock:hover{transform:scale(1.05);}
+
+.btn-acao{background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;border-radius:12px;padding:12px 28px;color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;transition:all .2s;}
+.btn-acao:hover{transform:translateY(-2px);opacity:.9;}
+.btn-acao.secondary{background:var(--bg3);border:1px solid var(--bd);color:var(--tx);}
+
+.prog-geral{background:var(--bg2);border-top:1px solid var(--bd);padding:12px 24px;position:fixed;bottom:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:14px;}
+.prog-geral-bar{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.prog-geral-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3),var(--accent2));border-radius:3px;transition:width .5s;}
+.prog-geral-txt{font-size:.75rem;color:var(--mu);white-space:nowrap;}
+.prog-geral-pts{font-family:'Orbitron',monospace;font-size:.8rem;color:var(--gold);white-space:nowrap;}
+@media(max-width:480px){.fases-grid{grid-template-columns:1fr;}.sim-resultado{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="home">
+  <div class="home-logo">ElectroQuest</div>
+  <div class="home-sub">ELETRONICA ANALOGICA GAMIFICADA</div>
+  <div class="mascot-preview" id="mascotPreview"></div>
+  <div class="stats-bar">
+    <div class="stat-chip">Pontos: <span id="ptsTot">0</span></div>
+    <div class="stat-chip">Fases: <span id="fasesCon">0</span>/5</div>
+    <div class="stat-chip">Mascotes: <span id="mascotesDesl">1</span>/5</div>
+  </div>
+  <button class="btn-start" onclick="irParaMapa()">INICIAR JORNADA</button>
+</div>
+
+<div class="screen" id="mapa">
+  <div style="max-width:1000px;margin:0 auto;width:100%;padding:24px;">
+    <div class="top-bar">
+      <div><div style="font-size:.75rem;color:var(--mu);margin-bottom:4px;">MAPA DE FASES</div><h2>Escolha sua missao</h2></div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div class="pts-badge">pts: <span id="ptsMapaBadge">0</span></div>
+        <button class="btn-back" onclick="irPara('home')">Inicio</button>
+      </div>
+    </div>
+    <div class="fases-grid" id="fasesGrid"></div>
+  </div>
+  <div style="height:60px"></div>
+</div>
+
+<div class="screen" id="fase">
+  <div class="fase-top">
+    <button class="btn-back" onclick="irPara('mapa')">Voltar</button>
+    <div class="fase-titulo" id="faseTitulo">-</div>
+    <div class="pts-badge" style="margin-left:auto">pts: <span id="ptsFaseBadge">0</span></div>
+  </div>
+  <div class="abas" id="abas">
+    <button class="aba ativa" onclick="mudarAba('teoria',this)">Teoria</button>
+    <button class="aba" onclick="mudarAba('quiz',this)">Quiz</button>
+    <button class="aba" onclick="mudarAba('simulador',this)">Simulador</button>
+  </div>
+  <div id="conteudoFase"></div>
+  <div style="height:80px"></div>
+</div>
+
+<div class="unlock-overlay" id="unlockOverlay">
+  <div class="unlock-card">
+    <div class="unlock-emoji" id="unlockEmoji">?</div>
+    <div class="unlock-titulo">MASCOTE DESBLOQUEADO!</div>
+    <div class="unlock-nome" id="unlockNome">-</div>
+    <div class="unlock-desc" id="unlockDesc">-</div>
+    <button class="btn-unlock" onclick="fecharUnlock()">INCRIVEL!</button>
+  </div>
+</div>
+
+<div class="prog-geral" id="progGeral" style="display:none">
+  <div class="prog-geral-bar"><div class="prog-geral-fill" id="progFill" style="width:0%"></div></div>
+  <div class="prog-geral-txt" id="progTxt">0%</div>
+  <div class="prog-geral-pts">pts: <span id="progPts">0</span></div>
+</div>
+
+<script>
+var MASCOTES=[
+  {emoji:'🦊',nome:'Raposa Volt',desc:'Mestre dos fundamentos. Rapida e curiosa como a corrente!'},
+  {emoji:'🦅',nome:'Aguia Ampere',desc:'Visao aguçada para circuitos. Nada escapa ao seu olhar!'},
+  {emoji:'🐺',nome:'Lobo Ohm',desc:'Feroz nas analises de resistencia. Domina a lei que rege tudo!'},
+  {emoji:'🦁',nome:'Leao Tesla',desc:'Rei dos transistores. Potencia e precisao!'},
+  {emoji:'🐉',nome:'Dragao Fourier',desc:'Mestre das frequencias. Transforma o invisivel em visivel!'},
+];
+var FASES=[
+  {id:0,nome:'Lei de Ohm',mascote:0,status:'disponivel',desc:'Fundamentos de tensao, corrente e resistencia. A base de tudo!',tags:['V=IR','Resistencia','Potencia'],
+   teoria:{titulo:'Lei de Ohm',mascoteFala:'Ola! Sou a Raposa Volt! Antes de qualquer coisa, voce precisa entender a Lei de Ohm. Ela e como a gramatica da eletronica!',
+   conteudo:[{h:'O que e a Lei de Ohm?',p:'A Lei de Ohm estabelece a relacao entre tensao (V), corrente (I) e resistencia (R). A corrente e diretamente proporcional a tensao aplicada.'},{formula:'V = R x I',label:'Lei de Ohm'},{p:'V = Tensao em Volts | I = Corrente em Amperes | R = Resistencia em Ohms'},{h:'Potencia Eletrica',p:'A potencia dissipada em um resistor e calculada por P = V x I.'},{formula:'P = V x I = I2 x R = V2 / R',label:'Potencia'}]},
+   quiz:[{p:'Se R=10 ohms e V=5V, qual e a corrente?',ops:['0.1 A','0.5 A','5 A','50 A'],certa:1,exp:'I = V/R = 5/10 = 0.5 A'},
+         {p:'Potencia em R=100 ohms com I=2A?',ops:['200 W','400 W','50 W','20 W'],certa:1,exp:'P = I2 x R = 4 x 100 = 400 W'},
+         {p:'A Lei de Ohm vale para qual componente?',ops:['Qualquer um','Diodos','Resistores lineares','Capacitores'],certa:2,exp:'Vale para componentes ohmicos lineares como resistores'}],
+   sim:{tipo:'resistor'}},
+  {id:1,nome:'Diodos',mascote:1,status:'bloqueada',desc:'Dispositivos que so deixam a corrente passar em um sentido!',tags:['Juncao PN','Retificacao','LED'],
+   teoria:{titulo:'Diodos',mascoteFala:'Sou a Aguia Ampere! Os diodos sao como valvulas — so deixam a corrente passar em uma direcao.',
+   conteudo:[{h:'O que e um Diodo?',p:'Um diodo e formado pela juncao de dois materiais semicondutores: tipo P e tipo N. Essa juncao PN permite o fluxo de corrente em apenas uma direcao.'},{formula:'V_D aprox 0.7V (Silicio)',label:'Tensao de limiar'},{h:'Polarizacao',p:'Polarizacao direta: diodo conduz. Polarizacao inversa: diodo bloqueia ate a tensao de ruptura.'},{h:'Aplicacoes',p:'Retificadores, limitadores de tensao, protecao de circuitos e LEDs.'}]},
+   quiz:[{p:'Tensao de limiar tipica do diodo de silicio?',ops:['0.3 V','0.7 V','1.2 V','2.0 V'],certa:1,exp:'Diodos de silicio tem tensao de juncao de aprox 0.7V'},
+         {p:'Diodo em polarizacao inversa:',ops:['Conduz normal','Bloqueia corrente','Explode','Vira resistor'],certa:1,exp:'Em polarizacao inversa o diodo bloqueia a corrente'},
+         {p:'Retificador de onda completa usa quantos diodos?',ops:['1','2','4','6'],certa:2,exp:'A ponte de Graetz usa 4 diodos'}],
+   sim:{tipo:'diodo'}},
+  {id:2,nome:'Transistores',mascote:2,status:'bloqueada',desc:'A peca mais importante da eletronica moderna!',tags:['BJT','Amplificacao','Chaveamento'],
+   teoria:{titulo:'Transistores BJT',mascoteFala:'Lobo Ohm aqui! O transistor e o coracao da eletronica moderna. Bilhoes deles estao no seu celular agora!',
+   conteudo:[{h:'O que e um BJT?',p:'O transistor bipolar tem tres terminais: Base (B), Coletor (C) e Emissor (E). Uma pequena corrente na base controla uma corrente maior entre coletor e emissor.'},{formula:'IC = beta x IB',label:'Ganho de corrente'},{h:'Regioes de Operacao',p:'Corte: transistor desligado. Ativa: amplificacao. Saturacao: transistor ligado (chaveamento).'}]},
+   quiz:[{p:'Se beta=100 e IB=20uA, qual e IC?',ops:['2 mA','20 mA','200 uA','2 A'],certa:0,exp:'IC = 100 x 20uA = 2mA'},
+         {p:'Na saturacao o BJT funciona como:',ops:['Amplificador','Chave aberta','Chave fechada','Oscilador'],certa:2,exp:'Na saturacao o transistor e uma chave fechada'},
+         {p:'Qual config oferece maior ganho de tensao?',ops:['Base comum','Emissor comum','Coletor comum','Iguais'],certa:1,exp:'Emissor comum oferece maior ganho de tensao'}],
+   sim:{tipo:'transistor'}},
+  {id:3,nome:'Op-Amp',mascote:3,status:'bloqueada',desc:'O amplificador operacional: versatil e poderoso!',tags:['Op-Amp','Inversor','Somador'],
+   teoria:{titulo:'Amplificador Operacional',mascoteFala:'Leao Tesla aqui! O Op-Amp e minha especialidade. Com ele voce amplifica, soma, integra sinais com precisao!',
+   conteudo:[{h:'O que e um Op-Amp?',p:'Componente de alta precisao com dois terminais de entrada (+ e -) e um de saida. Ganho em malha aberta altissimo (tipicamente 100.000 ou mais).'},{formula:'Vout = A x (V+ - V-)',label:'Malha aberta'},{h:'Amplificador Inversor',p:'Sinal aplicado na entrada inversora (-). A resistencia Rf define o ganho.'},{formula:'Av = -Rf / R1',label:'Ganho inversor'},{h:'Nao-Inversor',p:'Sinal na entrada (+). Ganho positivo e maior ou igual a 1.'},{formula:'Av = 1 + Rf / R1',label:'Ganho nao-inversor'}]},
+   quiz:[{p:'Inversor com R1=1k e Rf=10k, ganho?',ops:['-10','+10','-0.1','+11'],certa:0,exp:'Av = -Rf/R1 = -10'},
+         {p:'Sinal negativo no ganho inversor significa:',ops:['Ganho menor que 1','Inversao de fase 180°','Atenuacao','Erro'],certa:1,exp:'Sinal negativo indica inversao de fase de 180°'},
+         {p:'Ganho minimo do nao-inversor?',ops:['0','-1','1','Depende de Rf'],certa:2,exp:'Ganho minimo e 1'}],
+   sim:{tipo:'opamp'}},
+  {id:4,nome:'Filtros RC',mascote:4,status:'bloqueada',desc:'Frequencias e filtros — o mundo dos sinais!',tags:['Passa-baixa','Passa-alta','Frequencia de corte'],
+   teoria:{titulo:'Filtros RC',mascoteFala:'Dragao Fourier! Frequencias sao minha paixao. Os filtros decidem quais passam e quais ficam para tras!',
+   conteudo:[{h:'Filtros RC',p:'Formado por resistor (R) e capacitor (C). Cria filtros passa-baixa ou passa-alta dependendo da ligacao.'},{formula:'fc = 1 / (2pi x R x C)',label:'Frequencia de corte'},{h:'Passa-Baixa',p:'Deixa passar frequencias abaixo de fc e atenua as acima.'},{h:'Passa-Alta',p:'Bloqueia frequencias abaixo de fc. Usado para remover componente DC.'},{formula:'Atenuacao = -20dB/decada',label:'Filtro 1a ordem'}]},
+   quiz:[{p:'fc com R=1k e C=1uF?',ops:['159 Hz','1000 Hz','6280 Hz','100 Hz'],certa:0,exp:'fc = 1/(2pi x 1000 x 0.000001) aprox 159 Hz'},
+         {p:'Na frequencia de corte a tensao de saida e:',ops:['0%','50%','70.7%','100%'],certa:2,exp:'Na fc a saida e -3dB = 70.7% da entrada'},
+         {p:'Filtro passa-alta usado para:',ops:['Bloquear altas','Passa so baixas','Eliminar DC','Amplificar'],certa:2,exp:'Passa-alta bloqueia DC e baixas frequencias'}],
+   sim:{tipo:'filtro'}},
+];
+
+var estado={pts:0,faseAtual:0,abaAtual:'teoria',quizIdx:0,respondido:false};
+
+function salvar(){try{localStorage.setItem('eq',JSON.stringify({pts:estado.pts,fases:FASES.map(function(f){return f.status;})}));}catch(e){}}
+function carregar(){try{var s=JSON.parse(localStorage.getItem('eq')||'{}');if(s.pts)estado.pts=s.pts;if(s.fases)s.fases.forEach(function(st,i){if(FASES[i])FASES[i].status=st;});}catch(e){}}
+
+function irPara(tela){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(tela).classList.add('active');
+  var pg=document.getElementById('progGeral');
+  if(tela==='home'){pg.style.display='none';renderHome();}
+  else{pg.style.display='flex';atualizarBarra();}
+  if(tela==='mapa')renderMapa();
+  window.scrollTo(0,0);
+}
+function irParaMapa(){irPara('mapa');}
+
+function abrirFase(idx){
+  if(FASES[idx].status==='bloqueada')return;
+  estado.faseAtual=idx;estado.abaAtual='teoria';estado.quizIdx=0;estado.respondido=false;
+  document.getElementById('faseTitulo').textContent=FASES[idx].nome;
+  document.getElementById('ptsFaseBadge').textContent=estado.pts;
+  document.querySelectorAll('.aba').forEach(function(a,i){a.classList.toggle('ativa',i===0);});
+  renderAba('teoria');irPara('fase');
+}
+
+function mudarAba(aba,el){
+  estado.abaAtual=aba;
+  document.querySelectorAll('.aba').forEach(function(a){a.classList.remove('ativa');});
+  el.classList.add('ativa');renderAba(aba);
+}
+
+function renderHome(){
+  document.getElementById('ptsTot').textContent=estado.pts;
+  document.getElementById('fasesCon').textContent=FASES.filter(function(f){return f.status==='concluida';}).length;
+  document.getElementById('mascotesDesl').textContent=FASES.filter(function(f){return f.status!=='bloqueada';}).length;
+  document.getElementById('mascotPreview').innerHTML=FASES.map(function(f){
+    var m=MASCOTES[f.mascote],d=f.status!=='bloqueada';
+    return '<div class="mp-card '+(d?'unlocked':'locked')+'">'+m.emoji+(d?'':'<span class="lock">🔒</span>')+'</div>';
+  }).join('');
+}
+
+function renderMapa(){
+  document.getElementById('ptsMapaBadge').textContent=estado.pts;
+  document.getElementById('fasesGrid').innerHTML=FASES.map(function(f,i){
+    var m=MASCOTES[f.mascote];
+    var icon=f.status==='concluida'?'✅':f.status==='bloqueada'?'🔒':m.emoji;
+    var prog=f.status==='concluida'?100:0;
+    return '<div class="fase-card '+f.status+'" onclick="abrirFase('+i+')">'+
+      '<div class="fase-status">'+icon+'</div>'+
+      '<div class="fase-header"><div class="fase-icon">'+m.emoji+'</div><div>'+
+        '<div class="fase-num">FASE '+(i+1)+'</div>'+
+        '<div class="fase-nome">'+f.nome+'</div>'+
+        '<div class="fase-mascote">'+m.nome+'</div></div></div>'+
+      '<div class="fase-desc">'+f.desc+'</div>'+
+      '<div class="fase-tags">'+f.tags.map(function(t){return '<span class="tag">'+t+'</span>';}).join('')+'</div>'+
+      '<div class="progress-mini"><div class="progress-mini-fill" style="width:'+prog+'%"></div></div></div>';
+  }).join('');
+}
+
+function renderAba(aba){
+  var fase=FASES[estado.faseAtual];
+  var el=document.getElementById('conteudoFase');
+  if(aba==='teoria')el.innerHTML=renderTeoria(fase);
+  else if(aba==='quiz')el.innerHTML=renderQuiz(fase);
+  else el.innerHTML=renderSim(fase);
+}
+
+function renderTeoria(fase){
+  var t=fase.teoria,m=MASCOTES[fase.mascote];
+  var html='<div class="mascote-fala"><div class="mascote-emoji">'+m.emoji+'</div><div class="mascote-texto">'+t.mascoteFala+'</div></div>';
+  var boxAberto=false;
+  t.conteudo.forEach(function(c){
+    if(c.h){if(boxAberto)html+='</div>';html+='<div class="teoria-box"><h3>'+c.h+'</h3>';boxAberto=true;}
+    if(c.p)html+='<p>'+c.p+'</p>';
+    if(c.formula)html+='<div class="formula">'+c.formula+'<br><small style="color:var(--mu);font-size:.75rem">'+c.label+'</small></div>';
+  });
+  if(boxAberto)html+='</div>';
+  html+='<div style="display:flex;justify-content:center;margin-top:20px"><button class="btn-acao" onclick="mudarAba(\'quiz\',document.querySelectorAll(\'.aba\')[1])">Ir para o Quiz</button></div>';
+  return html;
+}
+
+function renderQuiz(fase){
+  var q=fase.quiz[estado.quizIdx];
+  if(!q)return renderFaseConcluida(fase);
+  return '<div class="pergunta-box">'+
+    '<div class="pergunta-num">PERGUNTA '+(estado.quizIdx+1)+' DE '+fase.quiz.length+'</div>'+
+    '<div class="pergunta-txt">'+q.p+'</div>'+
+    '<div class="opcoes">'+q.ops.map(function(op,i){return '<button class="opcao" onclick="responder('+i+')" id="op'+i+'">'+op+'</button>';}).join('')+'</div>'+
+    '<div class="feedback-box" id="feedbackBox"></div>'+
+    '</div>'+
+    '<div class="quiz-nav"><div class="quiz-pts">+50pts por acerto</div><button class="btn-acao secondary" id="btnProx" onclick="proximaPergunta()" style="display:none">Proxima</button></div>';
+}
+
+function responder(idx){
+  if(estado.respondido)return;
+  estado.respondido=true;
+  var fase=FASES[estado.faseAtual],q=fase.quiz[estado.quizIdx];
+  document.querySelectorAll('.opcao').forEach(function(o){o.disabled=true;});
+  var fb=document.getElementById('feedbackBox');
+  if(idx===q.certa){
+    document.getElementById('op'+idx).classList.add('certa');
+    fb.className='feedback-box certo';fb.textContent='Correto! '+q.exp;
+    estado.pts+=50;salvar();atualizarBarra();
+  }else{
+    document.getElementById('op'+idx).classList.add('errada');
+    document.getElementById('op'+q.certa).classList.add('certa');
+    fb.className='feedback-box errado';fb.textContent='Incorreto. Certa: '+q.ops[q.certa]+'. '+q.exp;
+  }
+  var btn=document.getElementById('btnProx');if(btn)btn.style.display='inline-flex';
+}
+
+function proximaPergunta(){
+  var fase=FASES[estado.faseAtual];
+  estado.quizIdx++;estado.respondido=false;
+  if(estado.quizIdx>=fase.quiz.length)concluirFase(fase);
+  else document.getElementById('conteudoFase').innerHTML=renderQuiz(fase);
+}
+
+function concluirFase(fase){
+  if(fase.status!=='concluida'){
+    fase.status='concluida';estado.pts+=100;
+    if(estado.faseAtual+1<FASES.length){FASES[estado.faseAtual+1].status='disponivel';mostrarUnlock(estado.faseAtual+1);}
+    salvar();
+  }
+  document.getElementById('conteudoFase').innerHTML=renderFaseConcluida(fase);
+  atualizarBarra();
+}
+
+function renderFaseConcluida(fase){
+  return '<div style="text-align:center;padding:40px 20px">'+
+    '<div style="font-size:3.5rem;margin-bottom:16px">🏆</div>'+
+    '<div style="font-family:Orbitron,monospace;font-size:1rem;color:var(--gold);margin-bottom:8px">FASE CONCLUIDA!</div>'+
+    '<div style="font-size:1.2rem;font-weight:800;margin-bottom:8px">'+fase.nome+'</div>'+
+    '<div style="color:var(--mu);font-size:.9rem;margin-bottom:28px">Parabens! Continue sua jornada!</div>'+
+    '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">'+
+      '<button class="btn-acao secondary" onclick="mudarAba(\'simulador\',document.querySelectorAll(\'.aba\')[2])">Simulador</button>'+
+      '<button class="btn-acao" onclick="irPara(\'mapa\')">Ver Mapa</button></div></div>';
+}
+
+/* SIMULADORES */
+function renderSim(fase){
+  var t=fase.sim.tipo;
+  if(t==='resistor')return simResistor();
+  if(t==='diodo')return simDiodo();
+  if(t==='transistor')return simTransistor();
+  if(t==='opamp')return simOpAmp();
+  if(t==='filtro')return simFiltro();
+  return '<p style="text-align:center;padding:40px;color:var(--mu)">Em desenvolvimento...</p>';
+}
+
+function simResistor(){
+  return '<div class="sim-box"><h3>SIMULADOR - Lei de Ohm</h3>'+
+    '<div class="sim-circuito"><svg viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">'+
+    '<line x1="20" y1="50" x2="80" y2="50" stroke="#00d4ff" stroke-width="2"/>'+
+    '<rect x="80" y="38" width="60" height="24" fill="none" stroke="#ff6b35" stroke-width="2" rx="3"/>'+
+    '<text x="110" y="55" fill="#ff6b35" font-size="12" text-anchor="middle" font-family="monospace">R</text>'+
+    '<line x1="140" y1="50" x2="200" y2="50" stroke="#00d4ff" stroke-width="2"/>'+
+    '<line x1="200" y1="50" x2="200" y2="90" stroke="#00d4ff" stroke-width="2"/>'+
+    '<line x1="20" y1="50" x2="20" y2="90" stroke="#00d4ff" stroke-width="2"/>'+
+    '<line x1="20" y1="90" x2="200" y2="90" stroke="#00d4ff" stroke-width="2"/>'+
+    '</svg></div>'+
+    '<div class="sim-controls">'+
+      '<div class="slider-group"><div class="slider-label">Tensao (V) <span id="vVal">5</span> V</div><input type="range" min="1" max="24" value="5" oninput="calcOhm(this.value,null)"></div>'+
+      '<div class="slider-group"><div class="slider-label">Resistencia (R) <span id="rVal">100</span> ohms</div><input type="range" min="10" max="1000" step="10" value="100" oninput="calcOhm(null,this.value)"></div>'+
+    '</div>'+
+    '<div class="sim-resultado">'+
+      '<div class="res-item"><div class="res-label">Corrente (I)</div><div class="res-valor" id="resI">50 mA</div></div>'+
+      '<div class="res-item"><div class="res-label">Potencia (P)</div><div class="res-valor" id="resP">250 mW</div></div>'+
+    '</div></div>';
+}
+var simV=5,simR=100;
+function calcOhm(v,r){
+  if(v!==null)simV=parseFloat(v);if(r!==null)simR=parseFloat(r);
+  if(document.getElementById('vVal'))document.getElementById('vVal').textContent=simV;
+  if(document.getElementById('rVal'))document.getElementById('rVal').textContent=simR;
+  var I=simV/simR,P=simV*I;
+  if(document.getElementById('resI')){
+    document.getElementById('resI').textContent=I>=1?(I.toFixed(2)+'A'):((I*1000).toFixed(1)+'mA');
+    document.getElementById('resP').textContent=P>=1?(P.toFixed(2)+'W'):((P*1000).toFixed(1)+'mW');
+  }
+}
+
+function simDiodo(){
+  return '<div class="sim-box"><h3>SIMULADOR - Diodo</h3>'+
+    '<div class="sim-circuito"><svg viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg">'+
+    '<line x1="20" y1="40" x2="100" y2="40" stroke="#00d4ff" stroke-width="2"/>'+
+    '<polygon points="100,25 100,55 130,40" fill="#ff6b35"/>'+
+    '<line x1="130" y1="25" x2="130" y2="55" stroke="#ff6b35" stroke-width="2.5"/>'+
+    '<line x1="130" y1="40" x2="200" y2="40" stroke="#00d4ff" stroke-width="2"/>'+
+    '<rect x="200" y="30" width="40" height="20" fill="none" stroke="#7c3aed" stroke-width="2" rx="3"/>'+
+    '<line x1="240" y1="40" x2="280" y2="40" stroke="#00d4ff" stroke-width="2"/>'+
+    '</svg></div>'+
+    '<div class="sim-controls">'+
+      '<div class="slider-group"><div class="slider-label">Tensao de entrada <span id="dV">3.0</span> V</div><input type="range" min="0" max="10" step="0.1" value="3" oninput="calcDiodo(this.value,null)"></div>'+
+      '<div class="slider-group"><div class="slider-label">Resistencia de carga <span id="dR">1000</span> ohms</div><input type="range" min="100" max="5000" step="100" value="1000" oninput="calcDiodo(null,this.value)"></div>'+
+    '</div>'+
+    '<div class="sim-resultado">'+
+      '<div class="res-item"><div class="res-label">Estado</div><div class="res-valor" id="dEstado">CONDUZ</div></div>'+
+      '<div class="res-item"><div class="res-label">Vout</div><div class="res-valor" id="dVout">2.3 V</div></div>'+
+      '<div class="res-item"><div class="res-label">Corrente</div><div class="res-valor" id="dI">2.3 mA</div></div>'+
+      '<div class="res-item"><div class="res-label">Queda V_D</div><div class="res-valor" id="dVd">0.7 V</div></div>'+
+    '</div></div>';
+}
+var dVin=3,dRL=1000;
+function calcDiodo(v,r){
+  if(v!==null)dVin=parseFloat(v);if(r!==null)dRL=parseFloat(r);
+  var conduz=dVin>0.7,vout=conduz?Math.max(0,dVin-0.7):0,i=conduz?vout/dRL:0;
+  if(document.getElementById('dV'))document.getElementById('dV').textContent=parseFloat(dVin).toFixed(1);
+  if(document.getElementById('dR'))document.getElementById('dR').textContent=dRL;
+  if(document.getElementById('dEstado')){
+    document.getElementById('dEstado').textContent=conduz?'CONDUZ':'BLOQUEADO';
+    document.getElementById('dEstado').style.color=conduz?'var(--green)':'var(--red)';
+    document.getElementById('dVout').textContent=vout.toFixed(2)+' V';
+    document.getElementById('dI').textContent=(i*1000).toFixed(2)+' mA';
+    document.getElementById('dVd').textContent=conduz?'0.7 V':'0 V';
+  }
+}
+
+function simTransistor(){
+  return '<div class="sim-box"><h3>SIMULADOR - Transistor BJT</h3>'+
+    '<div class="sim-circuito" style="font-size:.85rem;color:var(--mu);padding:20px">'+
+    'Base --[IB]--> BJT --[IC]--> Coletor<br>IC = beta x IB</div>'+
+    '<div class="sim-controls">'+
+      '<div class="slider-group"><div class="slider-label">Corrente de base IB <span id="tIB">20</span> uA</div><input type="range" min="0" max="200" step="1" value="20" oninput="calcTrans(this.value,null)"></div>'+
+      '<div class="slider-group"><div class="slider-label">Ganho beta <span id="tBeta">100</span></div><input type="range" min="10" max="500" step="10" value="100" oninput="calcTrans(null,this.value)"></div>'+
+    '</div>'+
+    '<div class="sim-resultado">'+
+      '<div class="res-item"><div class="res-label">Corrente IC</div><div class="res-valor" id="tIC">2.0 mA</div></div>'+
+      '<div class="res-item"><div class="res-label">Regiao</div><div class="res-valor" id="tRegiao">ATIVA</div></div>'+
+      '<div class="res-item"><div class="res-label">IE = IC + IB</div><div class="res-valor" id="tIE">2.02 mA</div></div>'+
+      '<div class="res-item"><div class="res-label">Ganho beta</div><div class="res-valor" id="tGanho">100</div></div>'+
+    '</div></div>';
+}
+var tIB=20,tBeta=100;
+function calcTrans(ib,b){
+  if(ib!==null)tIB=parseFloat(ib);if(b!==null)tBeta=parseFloat(b);
+  var IC=tBeta*tIB/1e6,IE=IC+tIB/1e6;
+  var reg=tIB==0?'CORTE':IC>0.05?'SATURACAO':'ATIVA';
+  if(document.getElementById('tIB'))document.getElementById('tIB').textContent=tIB;
+  if(document.getElementById('tBeta'))document.getElementById('tBeta').textContent=tBeta;
+  if(document.getElementById('tIC')){
+    document.getElementById('tIC').textContent=(IC*1000).toFixed(2)+' mA';
+    document.getElementById('tRegiao').textContent=reg;
+    document.getElementById('tRegiao').style.color=reg==='ATIVA'?'var(--green)':reg==='CORTE'?'var(--red)':'var(--gold)';
+    document.getElementById('tIE').textContent=(IE*1000).toFixed(2)+' mA';
+    document.getElementById('tGanho').textContent=tBeta;
+  }
+}
+
+function simOpAmp(){
+  return '<div class="sim-box"><h3>SIMULADOR - Op-Amp Inversor</h3>'+
+    '<div class="sim-circuito" style="font-size:.85rem;color:var(--mu);padding:20px">'+
+    'Vin --[R1]--> (-) Op-Amp (+) GND --> Vout<br>Rf de saida para entrada inversora</div>'+
+    '<div class="sim-controls">'+
+      '<div class="slider-group"><div class="slider-label">Vin <span id="oVin">1.0</span> V</div><input type="range" min="-5" max="5" step="0.1" value="1" oninput="calcOA(this.value,null,null)"></div>'+
+      '<div class="slider-group"><div class="slider-label">R1 <span id="oR1">1</span> k</div><input type="range" min="1" max="100" step="1" value="1" oninput="calcOA(null,this.value,null)"></div>'+
+      '<div class="slider-group"><div class="slider-label">Rf <span id="oRf">10</span> k</div><input type="range" min="1" max="100" step="1" value="10" oninput="calcOA(null,null,this.value)"></div>'+
+    '</div>'+
+    '<div class="sim-resultado">'+
+      '<div class="res-item"><div class="res-label">Ganho Av</div><div class="res-valor" id="oAv">-10</div></div>'+
+      '<div class="res-item"><div class="res-label">Vout</div><div class="res-valor" id="oVout">-10 V</div></div>'+
+      '<div class="res-item"><div class="res-label">Fase</div><div class="res-valor" id="oFase">INVERTIDA</div></div>'+
+      '<div class="res-item"><div class="res-label">Av = -Rf/R1</div><div class="res-valor" id="oFormula">-10/1</div></div>'+
+    '</div></div>';
+}
+var oVin=1,oR1=1,oRf=10;
+function calcOA(v,r1,rf){
+  if(v!==null)oVin=parseFloat(v);if(r1!==null)oR1=parseFloat(r1);if(rf!==null)oRf=parseFloat(rf);
+  var av=-(oRf/oR1),vout=Math.max(-15,Math.min(15,av*oVin));
+  if(document.getElementById('oVin'))document.getElementById('oVin').textContent=parseFloat(oVin).toFixed(1);
+  if(document.getElementById('oR1'))document.getElementById('oR1').textContent=oR1;
+  if(document.getElementById('oRf'))document.getElementById('oRf').textContent=oRf;
+  if(document.getElementById('oAv')){
+    document.getElementById('oAv').textContent=av.toFixed(1);
+    document.getElementById('oVout').textContent=vout.toFixed(2)+' V';
+    document.getElementById('oFase').textContent=vout<0?'INVERTIDA':'NORMAL';
+    document.getElementById('oFase').style.color=vout<0?'var(--accent2)':'var(--green)';
+    document.getElementById('oFormula').textContent='-'+oRf+'/'+oR1;
+  }
+}
+
+function simFiltro(){
+  return '<div class="sim-box"><h3>SIMULADOR - Filtro RC Passa-Baixa</h3>'+
+    '<div class="sim-circuito" style="font-size:.85rem;color:var(--mu);padding:20px">'+
+    'Vin --[R]--+--[C]-- GND<br>Vout medido no capacitor</div>'+
+    '<div class="sim-controls">'+
+      '<div class="slider-group"><div class="slider-label">R <span id="fR">1</span> k</div><input type="range" min="1" max="100" step="1" value="1" oninput="calcFiltro(this.value,null,null)"></div>'+
+      '<div class="slider-group"><div class="slider-label">C <span id="fC">1</span> uF</div><input type="range" min="1" max="100" step="1" value="1" oninput="calcFiltro(null,this.value,null)"></div>'+
+      '<div class="slider-group"><div class="slider-label">Frequencia <span id="fF">100</span> Hz</div><input type="range" min="1" max="10000" step="10" value="100" oninput="calcFiltro(null,null,this.value)"></div>'+
+    '</div>'+
+    '<div class="sim-resultado">'+
+      '<div class="res-item"><div class="res-label">Freq. de corte</div><div class="res-valor" id="fFc">159 Hz</div></div>'+
+      '<div class="res-item"><div class="res-label">Atenuacao</div><div class="res-valor" id="fAten">-5.9 dB</div></div>'+
+      '<div class="res-item"><div class="res-label">Vout/Vin</div><div class="res-valor" id="fRatio">50%</div></div>'+
+      '<div class="res-item"><div class="res-label">Status</div><div class="res-valor" id="fStatus">ATENUA</div></div>'+
+    '</div></div>';
+}
+var fR=1,fC=1,fFreq=100;
+function calcFiltro(r,c,f){
+  if(r!==null)fR=parseFloat(r);if(c!==null)fC=parseFloat(c);if(f!==null)fFreq=parseFloat(f);
+  var fc=1/(2*Math.PI*fR*1000*fC/1e6),ratio=1/Math.sqrt(1+Math.pow(fFreq/fc,2)),dB=20*Math.log10(ratio);
+  if(document.getElementById('fR'))document.getElementById('fR').textContent=fR;
+  if(document.getElementById('fC'))document.getElementById('fC').textContent=fC;
+  if(document.getElementById('fF'))document.getElementById('fF').textContent=fFreq;
+  if(document.getElementById('fFc')){
+    document.getElementById('fFc').textContent=fc.toFixed(1)+' Hz';
+    document.getElementById('fAten').textContent=dB.toFixed(1)+' dB';
+    document.getElementById('fRatio').textContent=(ratio*100).toFixed(1)+'%';
+    var passa=fFreq<fc;
+    document.getElementById('fStatus').textContent=passa?'PASSA':'ATENUA';
+    document.getElementById('fStatus').style.color=passa?'var(--green)':'var(--red)';
+  }
+}
+
+function mostrarUnlock(idx){
+  var m=MASCOTES[FASES[idx].mascote];
+  document.getElementById('unlockEmoji').textContent=m.emoji;
+  document.getElementById('unlockNome').textContent=m.nome;
+  document.getElementById('unlockDesc').textContent=m.desc;
+  document.getElementById('unlockOverlay').classList.add('show');
+}
+function fecharUnlock(){document.getElementById('unlockOverlay').classList.remove('show');}
+
+function atualizarBarra(){
+  var conc=FASES.filter(function(f){return f.status==='concluida';}).length;
+  var pct=Math.round((conc/FASES.length)*100);
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progTxt').textContent=pct+'%';
+  document.getElementById('progPts').textContent=estado.pts;
+  if(document.getElementById('ptsFaseBadge'))document.getElementById('ptsFaseBadge').textContent=estado.pts;
+}
+
+carregar();renderHome();
+</script>
+</body>
+</html>
